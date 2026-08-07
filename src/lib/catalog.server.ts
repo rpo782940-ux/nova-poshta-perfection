@@ -203,3 +203,39 @@ export async function loadSearch(query: string, lang: Lang): Promise<Product[]> 
     toProduct(row as Row, lang, byId.get((row as Row)["category_id"] as string) ?? ""),
   );
 }
+
+/** Single product page: the item itself plus siblings from the same category. */
+export async function loadProduct(
+  slug: string,
+  lang: Lang,
+): Promise<{ product: Product; categorySlug: string; related: Product[] } | null> {
+  const supabase = publicClient();
+  const { byId } = await categoryMap();
+
+  const { data, error } = await supabase
+    .from("products")
+    .select(PRODUCT_COLUMNS)
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+
+  const row = data as Row;
+  const categoryId = String(row["category_id"] ?? "");
+  const categorySlug = byId.get(categoryId) ?? "";
+  const product = toProduct(row, lang, categorySlug);
+
+  const { data: siblings } = await supabase
+    .from("products")
+    .select(PRODUCT_COLUMNS)
+    .eq("category_id", categoryId)
+    .eq("is_active", true)
+    .neq("slug", slug)
+    .order("sort_order", { ascending: true })
+    .limit(8);
+
+  const related = (siblings ?? []).map((r) => toProduct(r as Row, lang, categorySlug));
+  return { product, categorySlug, related };
+}

@@ -36,3 +36,13 @@ export const catalogSearch = createServerFn({ method: "POST" })
     const { loadSearch } = await import("@/lib/catalog.server");
     return await loadSearch(data.q, data.lang);
   });
+
+/** One product with its neighbours from the same category. */
+export const catalogProduct = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    langSchema.extend({ slug: z.string().min(1).max(200) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { loadProduct } = await import("@/lib/catalog.server");
+    return await loadProduct(data.slug, data.lang);
+  });
