@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { catalogSearchSchema } from "@/lib/catalog-search";
 import { pageHead, pageLoader, renderPage } from "@/lib/page-render";
 
 export const Route = createFileRoute("/$page")({
+  validateSearch: catalogSearchSchema,
   head: ({ params }) => pageHead(params.page.replace(/\.php$/, ""), "ru"),
   loader: ({ params, context }) =>
     pageLoader(params.page.replace(/\.php$/, ""), "ru", context.queryClient),
@@ -16,4 +18,3 @@ export const Route = createFileRoute("/$page")({
     return renderPage(page.replace(/\.php$/, ""), "ru");
   },
 });
-

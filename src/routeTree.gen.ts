@@ -14,10 +14,12 @@ import { Route as PageRouteImport } from './routes/$page'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as UkIndexRouteImport } from './routes/uk.index'
 import { Route as UkPageRouteImport } from './routes/uk.$page'
 import { Route as UkCartRouteImport } from './routes/uk.cart'
 import { Route as UkSearchRouteImport } from './routes/uk.search'
+import { Route as UkPSlugRouteImport } from './routes/uk.p.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -44,6 +46,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UkIndexRoute = UkIndexRouteImport.update({
   id: '/uk/',
   path: '/uk/',
@@ -64,6 +71,11 @@ const UkSearchRoute = UkSearchRouteImport.update({
   path: '/uk/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UkPSlugRoute = UkPSlugRouteImport.update({
+  id: '/uk/p/$slug',
+  path: '/uk/p/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -71,10 +83,12 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/p/$slug': typeof PSlugRoute
   '/uk/$page': typeof UkPageRoute
   '/uk/cart': typeof UkCartRoute
   '/uk/search': typeof UkSearchRoute
   '/uk/': typeof UkIndexRoute
+  '/uk/p/$slug': typeof UkPSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -82,10 +96,12 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/p/$slug': typeof PSlugRoute
   '/uk/$page': typeof UkPageRoute
   '/uk/cart': typeof UkCartRoute
   '/uk/search': typeof UkSearchRoute
   '/uk': typeof UkIndexRoute
+  '/uk/p/$slug': typeof UkPSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -94,10 +110,12 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/p/$slug': typeof PSlugRoute
   '/uk/$page': typeof UkPageRoute
   '/uk/cart': typeof UkCartRoute
   '/uk/search': typeof UkSearchRoute
   '/uk/': typeof UkIndexRoute
+  '/uk/p/$slug': typeof UkPSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,10 +125,12 @@ export interface FileRouteTypes {
     | '/cart'
     | '/search'
     | '/sitemap.xml'
+    | '/p/$slug'
     | '/uk/$page'
     | '/uk/cart'
     | '/uk/search'
     | '/uk/'
+    | '/uk/p/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -118,10 +138,12 @@ export interface FileRouteTypes {
     | '/cart'
     | '/search'
     | '/sitemap.xml'
+    | '/p/$slug'
     | '/uk/$page'
     | '/uk/cart'
     | '/uk/search'
     | '/uk'
+    | '/uk/p/$slug'
   id:
     | '__root__'
     | '/'
@@ -129,10 +151,12 @@ export interface FileRouteTypes {
     | '/cart'
     | '/search'
     | '/sitemap.xml'
+    | '/p/$slug'
     | '/uk/$page'
     | '/uk/cart'
     | '/uk/search'
     | '/uk/'
+    | '/uk/p/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -141,10 +165,12 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  PSlugRoute: typeof PSlugRoute
   UkPageRoute: typeof UkPageRoute
   UkCartRoute: typeof UkCartRoute
   UkSearchRoute: typeof UkSearchRoute
   UkIndexRoute: typeof UkIndexRoute
+  UkPSlugRoute: typeof UkPSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -184,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/uk/': {
       id: '/uk/'
       path: '/uk'
@@ -212,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UkSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/uk/p/$slug': {
+      id: '/uk/p/$slug'
+      path: '/uk/p/$slug'
+      fullPath: '/uk/p/$slug'
+      preLoaderRoute: typeof UkPSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -221,10 +261,12 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  PSlugRoute: PSlugRoute,
   UkPageRoute: UkPageRoute,
   UkCartRoute: UkCartRoute,
   UkSearchRoute: UkSearchRoute,
   UkIndexRoute: UkIndexRoute,
+  UkPSlugRoute: UkPSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

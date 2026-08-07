@@ -3,6 +3,7 @@ import {
   catalogCategory,
   catalogHighlights,
   catalogNav,
+  catalogProduct,
   catalogSearch,
 } from "@/lib/catalog.functions";
 import type { Lang } from "@/lib/site";
@@ -32,4 +33,11 @@ export const searchQuery = (q: string, lang: Lang) =>
     queryKey: ["catalog", "search", q, lang],
     queryFn: () => catalogSearch({ data: { q, lang } }),
     staleTime: 60_000,
+  });
+
+export const productQuery = (slug: string, lang: Lang) =>
+  queryOptions({
+    queryKey: ["catalog", "product", slug, lang],
+    queryFn: () => catalogProduct({ data: { slug, lang } }),
+    staleTime: 5 * 60_000,
   });
