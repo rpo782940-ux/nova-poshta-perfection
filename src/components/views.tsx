@@ -226,20 +226,17 @@ export function CatalogView({ lang }: { lang: Lang }) {
 
 export function CategoryView({ slug, lang }: { slug: string; lang: Lang }) {
   const page = PAGE_MAP[slug];
-  const { data: products } = useSuspenseQuery(categoryQuery(slug, lang));
   return (
     <>
       <PageHeader h1={pageH1(page, lang)} sub={pageDesc(page, lang)} />
-      <div className="container-page py-10">
+      <div className="container-page py-8">
         <Breadcrumbs lang={lang} current={pageNav(page, lang)} />
-        <p className="mb-6 text-sm text-muted-foreground">
-          {products.length} {t("positions", lang)}
-        </p>
-        <ProductGrid products={products} lang={lang} />
+        <CategoryCatalog slug={slug} lang={lang} />
       </div>
     </>
   );
 }
+
 
 export function DeliveryView({ lang }: { lang: Lang }) {
   const page = PAGE_MAP["oplata-dostavka"];
