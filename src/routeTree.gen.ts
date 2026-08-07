@@ -10,33 +10,141 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PageRouteImport } from './routes/$page'
+import { Route as CartRouteImport } from './routes/cart'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as UkIndexRouteImport } from './routes/uk.index'
+import { Route as UkPageRouteImport } from './routes/uk.$page'
+import { Route as UkCartRouteImport } from './routes/uk.cart'
+import { Route as UkSearchRouteImport } from './routes/uk.search'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PageRoute = PageRouteImport.update({
+  id: '/$page',
+  path: '/$page',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CartRoute = CartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UkIndexRoute = UkIndexRouteImport.update({
+  id: '/uk/',
+  path: '/uk/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UkPageRoute = UkPageRouteImport.update({
+  id: '/uk/$page',
+  path: '/uk/$page',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UkCartRoute = UkCartRouteImport.update({
+  id: '/uk/cart',
+  path: '/uk/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UkSearchRoute = UkSearchRouteImport.update({
+  id: '/uk/search',
+  path: '/uk/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$page': typeof PageRoute
+  '/cart': typeof CartRoute
+  '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/uk/$page': typeof UkPageRoute
+  '/uk/cart': typeof UkCartRoute
+  '/uk/search': typeof UkSearchRoute
+  '/uk/': typeof UkIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$page': typeof PageRoute
+  '/cart': typeof CartRoute
+  '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/uk/$page': typeof UkPageRoute
+  '/uk/cart': typeof UkCartRoute
+  '/uk/search': typeof UkSearchRoute
+  '/uk': typeof UkIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$page': typeof PageRoute
+  '/cart': typeof CartRoute
+  '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/uk/$page': typeof UkPageRoute
+  '/uk/cart': typeof UkCartRoute
+  '/uk/search': typeof UkSearchRoute
+  '/uk/': typeof UkIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/$page'
+    | '/cart'
+    | '/search'
+    | '/sitemap.xml'
+    | '/uk/$page'
+    | '/uk/cart'
+    | '/uk/search'
+    | '/uk/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/$page'
+    | '/cart'
+    | '/search'
+    | '/sitemap.xml'
+    | '/uk/$page'
+    | '/uk/cart'
+    | '/uk/search'
+    | '/uk'
+  id:
+    | '__root__'
+    | '/'
+    | '/$page'
+    | '/cart'
+    | '/search'
+    | '/sitemap.xml'
+    | '/uk/$page'
+    | '/uk/cart'
+    | '/uk/search'
+    | '/uk/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PageRoute: typeof PageRoute
+  CartRoute: typeof CartRoute
+  SearchRoute: typeof SearchRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  UkPageRoute: typeof UkPageRoute
+  UkCartRoute: typeof UkCartRoute
+  UkSearchRoute: typeof UkSearchRoute
+  UkIndexRoute: typeof UkIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +156,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$page': {
+      id: '/$page'
+      path: '/$page'
+      fullPath: '/$page'
+      preLoaderRoute: typeof PageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cart': {
+      id: '/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uk/': {
+      id: '/uk/'
+      path: '/uk'
+      fullPath: '/uk/'
+      preLoaderRoute: typeof UkIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uk/$page': {
+      id: '/uk/$page'
+      path: '/uk/$page'
+      fullPath: '/uk/$page'
+      preLoaderRoute: typeof UkPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uk/cart': {
+      id: '/uk/cart'
+      path: '/uk/cart'
+      fullPath: '/uk/cart'
+      preLoaderRoute: typeof UkCartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uk/search': {
+      id: '/uk/search'
+      path: '/uk/search'
+      fullPath: '/uk/search'
+      preLoaderRoute: typeof UkSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PageRoute: PageRoute,
+  CartRoute: CartRoute,
+  SearchRoute: SearchRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  UkPageRoute: UkPageRoute,
+  UkCartRoute: UkCartRoute,
+  UkSearchRoute: UkSearchRoute,
+  UkIndexRoute: UkIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
