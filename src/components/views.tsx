@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight, CreditCard, Factory, Layers, Truck } from "lucide-react";
 import { ProductGrid } from "@/components/ProductGrid";
-import { categoryQuery, highlightsQuery, navQuery } from "@/lib/catalog-queries";
+import { CategoryCatalog } from "@/components/CategoryCatalog";
+import { highlightsQuery, navQuery } from "@/lib/catalog-queries";
 import { t } from "@/lib/i18n";
 import {
   CATEGORIES,
