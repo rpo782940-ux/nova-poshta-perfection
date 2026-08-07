@@ -1,142 +1,25 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, ChevronDown, Loader2, Search } from "lucide-react";
-import {
-  npAreas,
-  npCities,
-  npStreets,
-  npWarehouses,
-  type NpOption,
-  type NpPoint,
-} from "@/lib/novaposhta.functions";
+import { Building2, Check, Loader2, MapPin, PackageOpen, Search, X } from "lucide-react";
+import { npCitySearch, npCityWarehouses } from "@/lib/novaposhta.functions";
+import type { NpCity, NpPoint } from "@/lib/novaposhta-types";
 import { t } from "@/lib/i18n";
 import type { Lang } from "@/lib/site";
 
-export type NpSelection = { area: string; city: string; warehouse: string };
+export type NpSelection = { city: string; warehouse: string };
+
+const POPULAR = ["Київ", "Харків", "Одеса", "Дніпро", "Львів", "Запоріжжя"];
 
 const field =
-  "w-full rounded-lg border border-input bg-background px-3 py-2.5 text-left text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-ring/25 disabled:opacity-50";
+  "w-full rounded-lg border border-input bg-background py-3 pl-10 pr-10 text-base outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-ring/25 sm:text-sm";
 
-/** Searchable dropdown used for regions, settlements and delivery points. */
-function Combo({
-  value,
-  placeholder,
-  options,
-  disabled,
-  loading,
-  emptyLabel,
-  onSelect,
-  onSearch,
-}: {
-  value: string;
-  placeholder: string;
-  options: { key: string; label: string; hint?: string }[];
-  disabled?: boolean;
-  loading?: boolean;
-  emptyLabel: string;
-  onSelect: (key: string, label: string) => void;
-  /** When provided, filtering happens on the server (official directory search). */
-  onSearch?: (q: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
-  const box = useRef<HTMLDivElement>(null);
+/** Normalises Ukrainian/Russian input so "харьков"/"Харків" both match locally. */
+const norm = (value: string) => value.toLowerCase().replace(/[ʼ'’`]/g, "").trim();
 
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => {
-      if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [open]);
-
-  useEffect(() => {
-    if (!onSearch) return;
-    const id = setTimeout(() => onSearch(q), 250);
-    return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
-
-  const filtered = useMemo(() => {
-    if (onSearch) return options.slice(0, 150);
-    const needle = q.trim().toLowerCase();
-    const list = needle
-      ? options.filter((o) => o.label.toLowerCase().includes(needle))
-      : options;
-    return list.slice(0, 150);
-  }, [q, options, onSearch]);
-
-  return (
-    <div className="relative" ref={box}>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen((v) => !v)}
-        className={`${field} flex items-center justify-between gap-2`}
-      >
-        <span className={value ? "truncate" : "truncate text-muted-foreground"}>
-          {value || placeholder}
-        </span>
-        {loading ? (
-          <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
-        ) : (
-          <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
-        )}
-      </button>
-
-      {open && !disabled && (
-        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-border bg-card shadow-lift">
-          <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-            <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-            <input
-              autoFocus
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={placeholder}
-              className="w-full bg-transparent text-sm outline-none"
-            />
-          </div>
-          <ul className="max-h-64 overflow-y-auto py-1">
-            {filtered.length === 0 && !loading && (
-              <li className="px-3 py-3 text-sm text-muted-foreground">{emptyLabel}</li>
-            )}
-            {loading && (
-              <li className="flex items-center gap-2 px-3 py-3 text-sm text-muted-foreground">
-                <Loader2 className="size-3.5 animate-spin" /> …
-              </li>
-            )}
-            {filtered.map((o) => (
-              <li key={o.key}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSelect(o.key, o.label);
-                    setOpen(false);
-                    setQ("");
-                  }}
-                  className="flex w-full items-start gap-2 px-3 py-2 text-left text-sm hover:bg-muted"
-                >
-                  {o.label === value && <Check className="mt-0.5 size-3.5 text-accent" />}
-                  <span className="flex-1">
-                    {o.label}
-                    {o.hint && (
-                      <span className="block text-xs text-muted-foreground">{o.hint}</span>
-                    )}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
-type Mode = "branch" | "postomat" | "courier";
-
-/** Live Nova Poshta address picker: region → settlement → branch / postomat / courier. */
+/**
+ * Nova Poshta picker — two steps only: find the city, pick the point.
+ * Branches, postomats and drop-off points live in one list; no delivery-type step.
+ */
 export function NovaPoshtaPicker({
   lang,
   onChange,
@@ -144,202 +27,294 @@ export function NovaPoshtaPicker({
   lang: Lang;
   onChange: (value: NpSelection) => void;
 }) {
-  const getAreas = useServerFn(npAreas);
-  const getCities = useServerFn(npCities);
-  const getWarehouses = useServerFn(npWarehouses);
-  const getStreets = useServerFn(npStreets);
+  const findCities = useServerFn(npCitySearch);
+  const loadPoints = useServerFn(npCityWarehouses);
 
-  const [areas, setAreas] = useState<NpOption[]>([]);
-  const [cities, setCities] = useState<NpOption[]>([]);
+  const [cityQuery, setCityQuery] = useState("");
+  const [cities, setCities] = useState<NpCity[]>([]);
+  const [citiesLoading, setCitiesLoading] = useState(false);
+  const [cityOpen, setCityOpen] = useState(false);
+  const [city, setCity] = useState<NpCity | null>(null);
+
   const [points, setPoints] = useState<NpPoint[]>([]);
-  const [streets, setStreets] = useState<NpOption[]>([]);
+  const [pointsLoading, setPointsLoading] = useState(false);
+  const [pointQuery, setPointQuery] = useState("");
+  const [point, setPoint] = useState<NpPoint | null>(null);
+  const [failed, setFailed] = useState(false);
 
-  const [area, setArea] = useState<NpOption | null>(null);
-  const [city, setCity] = useState<NpOption | null>(null);
-  const [mode, setMode] = useState<Mode>("branch");
-  const [point, setPoint] = useState("");
-  const [street, setStreet] = useState("");
-  const [house, setHouse] = useState("");
-
-  const [loading, setLoading] = useState<"areas" | "cities" | "points" | null>("areas");
-  // Guards against out-of-order directory responses overwriting a newer search.
+  const cityBox = useRef<HTMLDivElement>(null);
+  // Monotonic request ids: a stale response can never overwrite a newer one.
   const cityReq = useRef(0);
   const pointReq = useRef(0);
 
   useEffect(() => {
-    setLoading("areas");
-    getAreas({ data: { lang } })
-      .then(setAreas)
-      .catch(() => setAreas([]))
-      .finally(() => setLoading(null));
-  }, [getAreas, lang]);
+    if (!cityOpen) return;
+    const close = (e: MouseEvent) => {
+      if (cityBox.current && !cityBox.current.contains(e.target as Node)) setCityOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [cityOpen]);
 
-  const loadCities = (search: string) => {
-    if (!area) return;
+  // Debounced country-wide city search.
+  useEffect(() => {
+    const q = cityQuery.trim();
+    if (city && q === city.name) return;
+    if (q.length < 2) {
+      cityReq.current++;
+      setCities([]);
+      setCitiesLoading(false);
+      return;
+    }
     const req = ++cityReq.current;
-    setLoading("cities");
-    getCities({ data: { areaRef: area.ref, search, lang } })
-      .then((rows) => {
-        if (req === cityReq.current) setCities(rows);
-      })
-      .catch(() => {
-        if (req === cityReq.current) setCities([]);
-      })
-      .finally(() => {
-        if (req === cityReq.current) setLoading(null);
-      });
-  };
+    setCitiesLoading(true);
+    const timer = setTimeout(() => {
+      findCities({ data: { query: q } })
+        .then((rows) => {
+          if (req !== cityReq.current) return;
+          setCities(rows);
+          setFailed(false);
+        })
+        .catch(() => {
+          if (req !== cityReq.current) return;
+          setCities([]);
+          setFailed(true);
+        })
+        .finally(() => {
+          if (req === cityReq.current) setCitiesLoading(false);
+        });
+    }, 220);
+    return () => clearTimeout(timer);
+  }, [cityQuery, city, findCities]);
 
-  const loadPoints = (search: string, postomat: boolean) => {
-    if (!city) return;
-    const req = ++pointReq.current;
-    setLoading("points");
-    getWarehouses({ data: { settlementRef: city.ref, search, postomat, lang } })
-      .then((rows) => {
-        if (req === pointReq.current) setPoints(rows);
-      })
-      .catch(() => {
-        if (req === pointReq.current) setPoints([]);
-      })
-      .finally(() => {
-        if (req === pointReq.current) setLoading(null);
-      });
-  };
+  const selectCity = useCallback(
+    (next: NpCity) => {
+      setCity(next);
+      setCityQuery(next.name);
+      setCityOpen(false);
+      setPoint(null);
+      setPointQuery("");
+      setPoints([]);
+      onChange({ city: `${next.name}, ${next.hint}`.replace(/,\s*$/, ""), warehouse: "" });
 
-  // Region changed → reset everything below it.
-  useEffect(() => {
-    setCities([]);
+      const req = ++pointReq.current;
+      setPointsLoading(true);
+      loadPoints({ data: { settlementRef: next.ref } })
+        .then((rows) => {
+          if (req !== pointReq.current) return;
+          setPoints(rows);
+          setFailed(false);
+        })
+        .catch(() => {
+          if (req !== pointReq.current) return;
+          setPoints([]);
+          setFailed(true);
+        })
+        .finally(() => {
+          if (req === pointReq.current) setPointsLoading(false);
+        });
+    },
+    [loadPoints, onChange],
+  );
+
+  const reset = () => {
+    cityReq.current++;
+    pointReq.current++;
     setCity(null);
+    setCityQuery("");
+    setCities([]);
     setPoints([]);
-    setPoint("");
-    if (area) loadCities("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [area]);
+    setPoint(null);
+    setPointQuery("");
+    setFailed(false);
+    onChange({ city: "", warehouse: "" });
+  };
 
-  // Settlement changed → reload delivery points for the current mode.
-  useEffect(() => {
-    setPoints([]);
-    setPoint("");
-    setStreets([]);
-    setStreet("");
-    if (city && mode !== "courier") loadPoints("", mode === "postomat");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city]);
+  // Points are fully loaded for the settlement, so filtering is instant and local.
+  const visiblePoints = useMemo(() => {
+    const needle = norm(pointQuery);
+    if (!needle) return points;
+    return points.filter(
+      (p) => norm(p.name).includes(needle) || norm(p.address).includes(needle),
+    );
+  }, [points, pointQuery]);
 
-  const emit = (next: Partial<NpSelection>) =>
-    onChange({
-      area: area?.name ?? "",
-      city: city?.name ?? "",
-      warehouse: "",
-      ...next,
-    });
-
-  const modes: { id: Mode; label: string }[] = [
-    { id: "branch", label: t("npBranch", lang) },
-    { id: "postomat", label: t("npPostomat", lang) },
-    { id: "courier", label: t("npCourier", lang) },
-  ];
+  const iconFor = (kind: NpPoint["kind"]) =>
+    kind === "postomat" ? PackageOpen : kind === "dropoff" ? MapPin : Building2;
 
   return (
     <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-3">
-      {/* 1 — region */}
-      <Combo
-        value={area?.name ?? ""}
-        placeholder={t("npRegion", lang)}
-        options={areas.map((a) => ({ key: a.ref, label: a.name }))}
-        loading={loading === "areas"}
-        emptyLabel={t("nothingFound", lang)}
-        onSelect={(key, label) => {
-          setArea({ ref: key, name: label });
-          onChange({ area: label, city: "", warehouse: "" });
-        }}
-      />
-
-      {/* 2 — settlement (official directory search on the server) */}
-      <Combo
-        value={city?.name ?? ""}
-        placeholder={t("npCity", lang)}
-        options={cities.map((c) => ({ key: c.ref, label: c.name, hint: c.hint }))}
-        disabled={!area}
-        loading={loading === "cities"}
-        emptyLabel={t("nothingFound", lang)}
-        onSearch={(q) => loadCities(q)}
-        onSelect={(key, label) => {
-          setCity({ ref: key, name: label });
-          onChange({ area: area?.name ?? "", city: label, warehouse: "" });
-        }}
-      />
-
-      {/* 3 — branch / postomat / courier */}
-      <div className="grid grid-cols-3 gap-1.5 rounded-lg bg-background p-1">
-        {modes.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            onClick={() => {
-              setMode(m.id);
-              setPoint("");
-              setStreet("");
-              setHouse("");
+      {/* Step 1 — city */}
+      <div className="relative" ref={cityBox}>
+        <Search
+          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden
+        />
+        <input
+          type="text"
+          inputMode="search"
+          autoComplete="off"
+          value={cityQuery}
+          placeholder={t("npCityPlaceholder", lang)}
+          aria-label={t("npCity", lang)}
+          onFocus={() => setCityOpen(true)}
+          onChange={(e) => {
+            setCityQuery(e.target.value);
+            setCityOpen(true);
+            if (city) {
+              setCity(null);
               setPoints([]);
-              emit({ warehouse: "" });
-              if (m.id !== "courier" && city) loadPoints("", m.id === "postomat");
-            }}
-            className={`rounded-md px-2 py-2 text-xs font-semibold transition-colors ${
-              mode === m.id
-                ? "bg-accent text-accent-foreground"
-                : "text-muted-foreground hover:bg-muted"
-            }`}
-          >
-            {m.label}
-          </button>
-        ))}
+              setPoint(null);
+              onChange({ city: "", warehouse: "" });
+            }
+          }}
+          className={field}
+        />
+        {citiesLoading ? (
+          <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+        ) : (
+          (cityQuery || city) && (
+            <button
+              type="button"
+              onClick={reset}
+              aria-label={t("clear", lang)}
+              className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
+            >
+              <X className="size-4" />
+            </button>
+          )
+        )}
+
+        {cityOpen && !city && (
+          <div className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto overscroll-contain rounded-lg border border-border bg-card shadow-lift">
+            {cityQuery.trim().length < 2 ? (
+              <div className="p-3">
+                <p className="text-xs text-muted-foreground">{t("npCityHint", lang)}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {POPULAR.map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => setCityQuery(name)}
+                      className="rounded-full border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : citiesLoading && cities.length === 0 ? (
+              <p className="flex items-center gap-2 px-3 py-3 text-sm text-muted-foreground">
+                <Loader2 className="size-3.5 animate-spin" /> {t("loading", lang)}
+              </p>
+            ) : cities.length === 0 ? (
+              <p className="px-3 py-3 text-sm text-muted-foreground">
+                {failed ? t("npError", lang) : t("nothingFound", lang)}
+              </p>
+            ) : (
+              <ul className="py-1">
+                {cities.map((c) => (
+                  <li key={c.ref}>
+                    <button
+                      type="button"
+                      onClick={() => selectCity(c)}
+                      className="flex w-full items-start gap-2 px-3 py-2.5 text-left hover:bg-muted"
+                    >
+                      <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">{c.name}</span>
+                        {c.hint && (
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {c.hint}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
-      {mode === "courier" ? (
-        <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
-          <Combo
-            value={street}
-            placeholder={t("npStreet", lang)}
-            options={streets.map((s) => ({ key: s.ref, label: s.name }))}
-            disabled={!city}
-            emptyLabel={t("npTypeStreet", lang)}
-            onSearch={(q) => {
-              if (!city || q.trim().length < 2) return;
-              getStreets({ data: { settlementRef: city.ref, search: q, lang } })
-                .then(setStreets)
-                .catch(() => setStreets([]));
-            }}
-            onSelect={(_key, label) => {
-              setStreet(label);
-              emit({ warehouse: [label, house].filter(Boolean).join(", ") });
-            }}
-          />
-          <input
-            className={field}
-            placeholder={t("npHouse", lang)}
-            value={house}
-            maxLength={40}
-            onChange={(e) => {
-              setHouse(e.target.value);
-              emit({ warehouse: [street, e.target.value].filter(Boolean).join(", ") });
-            }}
-          />
+      {/* Step 2 — delivery point */}
+      {city && (
+        <div className="space-y-2">
+          {pointsLoading ? (
+            <p className="flex items-center gap-2 px-1 py-2 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" /> {t("npLoadingPoints", lang)}
+            </p>
+          ) : points.length === 0 ? (
+            <p className="rounded-lg border border-border bg-background px-3 py-3 text-sm text-muted-foreground">
+              {failed ? t("npError", lang) : t("npNoWarehouses", lang)}
+            </p>
+          ) : (
+            <>
+              {points.length > 8 && (
+                <div className="relative">
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                    aria-hidden
+                  />
+                  <input
+                    type="text"
+                    inputMode="search"
+                    value={pointQuery}
+                    placeholder={t("npFilterPoints", lang)}
+                    aria-label={t("npFilterPoints", lang)}
+                    onChange={(e) => setPointQuery(e.target.value)}
+                    className={field}
+                  />
+                </div>
+              )}
+
+              <ul
+                role="listbox"
+                aria-label={t("npWarehouse", lang)}
+                className="max-h-72 divide-y divide-border overflow-y-auto overscroll-contain rounded-lg border border-border bg-background"
+              >
+                {visiblePoints.length === 0 && (
+                  <li className="px-3 py-3 text-sm text-muted-foreground">
+                    {t("nothingFound", lang)}
+                  </li>
+                )}
+                {visiblePoints.slice(0, 300).map((p) => {
+                  const Icon = iconFor(p.kind);
+                  const active = point?.ref === p.ref;
+                  return (
+                    <li key={p.ref}>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={active}
+                        onClick={() => {
+                          setPoint(p);
+                          onChange({
+                            city: `${city.name}, ${city.hint}`.replace(/,\s*$/, ""),
+                            warehouse: `${p.name}: ${p.address}`,
+                          });
+                        }}
+                        className={`flex w-full items-start gap-2.5 px-3 py-3 text-left transition-colors ${
+                          active ? "bg-accent/10" : "hover:bg-muted"
+                        }`}
+                      >
+                        <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium">{p.name}</span>
+                          <span className="block break-words text-xs text-muted-foreground">
+                            {p.address}
+                          </span>
+                        </span>
+                        {active && <Check className="mt-0.5 size-4 shrink-0 text-accent" />}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
         </div>
-      ) : (
-        <Combo
-          value={point}
-          placeholder={mode === "postomat" ? t("npPostomat", lang) : t("npWarehouse", lang)}
-          options={points.map((p) => ({ key: p.ref, label: p.name }))}
-          disabled={!city}
-          loading={loading === "points"}
-          emptyLabel={t("npNoPoints", lang)}
-          onSearch={(q) => loadPoints(q, mode === "postomat")}
-          onSelect={(_key, label) => {
-            setPoint(label);
-            emit({ warehouse: label });
-          }}
-        />
       )}
     </div>
   );
