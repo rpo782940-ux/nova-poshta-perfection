@@ -131,13 +131,33 @@ export function NovaPoshtaPicker({
   };
 
   // Points are fully loaded for the settlement, so filtering is instant and local.
+  // Ranking: exact branch number → prefix → contains → name → address.
   const visiblePoints = useMemo(() => {
-    const needle = norm(pointQuery);
-    if (!needle) return points;
-    return points.filter(
-      (p) => norm(p.name).includes(needle) || norm(p.address).includes(needle),
+    const raw = pointQuery.trim();
+    if (!raw) return points;
+    const digits = raw.replace(/\D+/g, "");
+    const needle = norm(raw);
+    const scored: { p: NpPoint; s: number }[] = [];
+    for (const p of points) {
+      let s = -1;
+      if (digits) {
+        if (p.number === digits) s = 0;
+        else if (p.number.startsWith(digits)) s = 1;
+        else if (p.number.includes(digits)) s = 2;
+      }
+      if (s < 0 && needle && norm(p.name).includes(needle)) s = 3;
+      if (s < 0 && needle && norm(p.address).includes(needle)) s = 4;
+      if (s >= 0) scored.push({ p, s });
+    }
+    scored.sort(
+      (a, b) =>
+        a.s - b.s ||
+        (Number(a.p.number) || 1e9) - (Number(b.p.number) || 1e9) ||
+        a.p.name.localeCompare(b.p.name),
     );
+    return scored.map((x) => x.p);
   }, [points, pointQuery]);
+
 
   const iconFor = (kind: NpPoint["kind"]) =>
     kind === "postomat" ? PackageOpen : kind === "dropoff" ? MapPin : Building2;
