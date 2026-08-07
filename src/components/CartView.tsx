@@ -195,9 +195,10 @@ export function CartView({ lang }: { lang: Lang }) {
             <NovaPoshtaPicker
               lang={lang}
               onChange={(np) =>
-                set("city", [np.area, np.city, np.warehouse].filter(Boolean).join(", "))
+                set("city", [np.city, np.warehouse].filter(Boolean).join(", "))
               }
             />
+
           ) : (
             <input
               className={input}
