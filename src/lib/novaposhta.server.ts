@@ -89,26 +89,51 @@ export async function searchCities(query: string): Promise<NpCity[]> {
   const hit = cached<NpCity[]>(key);
   if (hit) return hit;
 
-  const payload = await call("AddressGeneral", "searchSettlements", {
-    CityName: q,
-    Limit: "50",
-    Page: "1",
-  });
+  // Two directories complement each other: `searchSettlements` is fuzzy but
+  // short, `getSettlements` returns the full served list for the same string.
+  const [search, full] = await Promise.all([
+    call("AddressGeneral", "searchSettlements", { CityName: q, Limit: "200", Page: "1" }).catch(
+      () => null,
+    ),
+    call("Address", "getSettlements", {
+      FindByString: q,
+      Warehouse: "1",
+      Limit: "150",
+      Page: "1",
+    }).catch(() => null),
+  ]);
+  if (!search && !full) throw new Error("novaposhta_error");
 
-  const rows = (payload.data?.[0]?.["Addresses"] ?? []) as NpItem[];
+  const rows: NpItem[] = [
+    ...((search?.data?.[0]?.["Addresses"] ?? []) as NpItem[]),
+    ...((full?.data ?? []) as NpItem[]),
+  ];
   const seen = new Set<string>();
+  const labels = new Set<string>();
   const out: NpCity[] = [];
   for (const row of rows) {
     const ref = str(row, "Ref");
-    const main = str(row, "MainDescription");
+    const main = str(row, "MainDescription") || str(row, "Description");
     if (!ref || !main || seen.has(ref)) continue;
     seen.add(ref);
-    const type = str(row, "SettlementTypeCode");
-    const warehouses = Number(row["Warehouses"] ?? 0) || 0;
+    const type = str(row, "SettlementTypeCode") || str(row, "SettlementTypeDescription");
+    const hint =
+      cityHint(row) ||
+      [
+        str(row, "RegionsDescription") ? `${str(row, "RegionsDescription")} р-н` : "",
+        str(row, "AreaDescription") ? `${str(row, "AreaDescription")} обл.` : "",
+      ]
+        .filter(Boolean)
+        .join(", ");
+    // Same settlement can come back twice under different refs — keep the first.
+    const label = `${type} ${main} ${hint}`.toLowerCase();
+    if (labels.has(label)) continue;
+    labels.add(label);
+    const warehouses = Number(row["Warehouses"] ?? row["WarehousesCount"] ?? 0) || 0;
     out.push({
       ref,
       name: type ? `${type} ${main}` : main,
-      hint: cityHint(row),
+      hint,
       warehouses,
     });
   }

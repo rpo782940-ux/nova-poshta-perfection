@@ -60,7 +60,7 @@ export function CatalogSidebar({ lang, active }: { lang: Lang; active?: string }
       <p className="mb-3 font-display text-sm font-bold tracking-wide uppercase">
         {t("categoriesMenu", lang)}
       </p>
-      <ul className="max-h-[60vh] overflow-y-auto overscroll-contain rounded-xl border border-border bg-card lg:max-h-none">
+      <ul className="max-h-[60vh] overflow-y-auto overscroll-contain rounded-xl border border-border bg-card lg:max-h-[calc(100vh-9rem)]">
         {visible.map((c) => {
           const on = c.slug === active;
           return (
