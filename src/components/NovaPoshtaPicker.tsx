@@ -40,6 +40,7 @@ export function NovaPoshtaPicker({
   const [pointsLoading, setPointsLoading] = useState(false);
   const [pointQuery, setPointQuery] = useState("");
   const [point, setPoint] = useState<NpPoint | null>(null);
+  const [pointsOpen, setPointsOpen] = useState(false);
   const [failed, setFailed] = useState(false);
 
   const cityBox = useRef<HTMLDivElement>(null);
@@ -95,6 +96,7 @@ export function NovaPoshtaPicker({
       setPoint(null);
       setPointQuery("");
       setPoints([]);
+      setPointsOpen(true);
       onChange({ city: `${next.name}, ${next.hint}`.replace(/,\s*$/, ""), warehouse: "" });
 
       const req = ++pointReq.current;
@@ -126,6 +128,7 @@ export function NovaPoshtaPicker({
     setPoints([]);
     setPoint(null);
     setPointQuery("");
+    setPointsOpen(false);
     setFailed(false);
     onChange({ city: "", warehouse: "" });
   };
@@ -185,6 +188,7 @@ export function NovaPoshtaPicker({
               setCity(null);
               setPoints([]);
               setPoint(null);
+              setPointsOpen(false);
               onChange({ city: "", warehouse: "" });
             }
           }}
@@ -206,7 +210,7 @@ export function NovaPoshtaPicker({
         )}
 
         {cityOpen && !city && (
-          <div className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto overscroll-contain rounded-lg border border-border bg-card shadow-lift">
+          <div className="absolute z-50 mt-1 max-h-96 w-full overflow-y-auto overscroll-contain rounded-lg border border-border bg-card shadow-lift">
             {cityQuery.trim().length < 2 ? (
               <div className="p-3">
                 <p className="text-xs text-muted-foreground">{t("npCityHint", lang)}</p>
@@ -259,7 +263,26 @@ export function NovaPoshtaPicker({
       </div>
 
       {/* Step 2 — delivery point */}
-      {city && (
+      {city && point && !pointsOpen && (
+        <button
+          type="button"
+          onClick={() => setPointsOpen(true)}
+          className="flex w-full items-start gap-2.5 rounded-lg border border-accent bg-background px-3 py-3 text-left"
+        >
+          <Check className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">{point.name}</span>
+            <span className="block break-words text-xs text-muted-foreground">
+              {point.address}
+            </span>
+          </span>
+          <span className="shrink-0 text-xs font-medium text-accent underline">
+            {t("npChange", lang)}
+          </span>
+        </button>
+      )}
+
+      {city && (!point || pointsOpen) && (
         <div className="space-y-2">
           {pointsLoading ? (
             <p className="flex items-center gap-2 px-1 py-2 text-sm text-muted-foreground">
@@ -310,6 +333,8 @@ export function NovaPoshtaPicker({
                         aria-selected={active}
                         onClick={() => {
                           setPoint(p);
+                          setPointsOpen(false);
+                          setPointQuery("");
                           onChange({
                             city: `${city.name}, ${city.hint}`.replace(/,\s*$/, ""),
                             warehouse: `${p.name}: ${p.address}`,

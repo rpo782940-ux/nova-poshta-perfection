@@ -36,7 +36,9 @@ export function Header({ lang }: { lang: Lang }) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header
+      onMouseLeave={() => setCats(false)}
+      className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="bg-steel text-steel-foreground">
         <div className="container-page flex h-9 items-center justify-between gap-4 text-xs">
           <span className="hidden truncate opacity-80 sm:block">
@@ -77,6 +79,7 @@ export function Header({ lang }: { lang: Lang }) {
         <nav className="hidden items-center gap-1 lg:flex">
           <button
             onClick={() => setCats((v) => !v)}
+            onMouseEnter={() => setCats(true)}
             className="rounded-sm px-3 py-2 text-sm font-medium hover:bg-muted"
             aria-expanded={cats}
           >
@@ -144,7 +147,7 @@ export function Header({ lang }: { lang: Lang }) {
 
       {cats && (
         <div className="hidden border-t border-border bg-card lg:block">
-          <div className="container-page grid grid-cols-3 gap-x-8 gap-y-1 py-5">
+          <div className="container-page grid max-h-[70vh] grid-cols-3 gap-x-8 gap-y-1 overflow-y-auto overscroll-contain py-5">
             {CATEGORIES.map((c) => (
               <Link
                 key={c.slug}
