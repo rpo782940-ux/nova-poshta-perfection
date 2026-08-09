@@ -70,7 +70,7 @@ export function Header({ lang }: { lang: Lang }) {
             alt="TechnoForma"
             width={184}
             height={60}
-            className="h-10 w-auto sm:h-11"
+            className="h-8 w-auto sm:h-11"
           />
         </Link>
 
@@ -80,12 +80,12 @@ export function Header({ lang }: { lang: Lang }) {
             <a
               key={phone}
               href={telHref(phone)}
-              className={`items-center gap-2 rounded-lg px-2 py-1.5 font-display text-base font-bold whitespace-nowrap transition-colors hover:text-accent md:text-lg ${
+              className={`items-center gap-2 rounded-lg px-2 py-1.5 font-display text-base font-bold whitespace-nowrap transition-colors hover:text-accent max-sm:px-0 max-sm:text-[13px] md:text-lg ${
                 i === 0 ? "flex" : "hidden md:flex"
               }`}
             >
               <Phone className="size-4 shrink-0 text-accent md:size-5" aria-hidden />
-              <span className="hidden sm:inline">{phone}</span>
+              <span className={i === 0 ? "inline" : "hidden md:inline"}>{phone}</span>
             </a>
           ))}
         </div>
@@ -132,7 +132,7 @@ export function Header({ lang }: { lang: Lang }) {
             to={href("/search", lang)}
             search={{ q: "" }}
             aria-label={t("search", lang)}
-            className="rounded-sm border border-border p-2 2xl:hidden"
+            className="hidden rounded-sm border border-border p-2 sm:inline-flex 2xl:hidden"
           >
             <Search className="size-5" />
           </Link>
