@@ -3,7 +3,7 @@ import { Menu, Phone, Search, ShoppingCart, X } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
 import { t } from "@/lib/i18n";
-import { CATEGORIES, CONTACTS, href, pageNav, type Lang } from "@/lib/site";
+import { CATEGORIES, CONTACTS, href, pageNav, telHref, type Lang } from "@/lib/site";
 
 export function Header({ lang }: { lang: Lang }) {
   const [open, setOpen] = useState(false);
@@ -46,11 +46,10 @@ export function Header({ lang }: { lang: Lang }) {
           </span>
           <div className="flex items-center gap-4">
             <a
-              href={`tel:${CONTACTS.phones[0].replace(/[^+\d]/g, "")}`}
-              className="flex items-center gap-1.5 font-medium hover:text-accent"
+              href={`mailto:${CONTACTS.email}`}
+              className="hidden font-medium hover:text-accent sm:block"
             >
-              <Phone className="size-3.5" aria-hidden />
-              {CONTACTS.phones[0]}
+              {CONTACTS.email}
             </a>
             <div className="flex items-center overflow-hidden rounded-sm border border-steel-foreground/25">
               <span className="bg-accent px-2 py-0.5 font-semibold text-accent-foreground uppercase">
@@ -71,12 +70,27 @@ export function Header({ lang }: { lang: Lang }) {
             alt="TechnoForma"
             width={184}
             height={60}
-            className="h-10 w-auto sm:h-11"
+            className="h-8 w-auto sm:h-11"
           />
         </Link>
 
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <div className="flex items-center gap-2 md:gap-4">
+          {CONTACTS.phones.map((phone, i) => (
+            <a
+              key={phone}
+              href={telHref(phone)}
+              className={`items-center gap-2 rounded-lg px-2 py-1.5 font-display text-base font-bold whitespace-nowrap transition-colors hover:text-accent max-sm:px-0 max-sm:text-[13px] md:text-lg ${
+                i === 0 ? "flex" : "hidden md:flex"
+              }`}
+            >
+              <Phone className="size-4 shrink-0 text-accent md:size-5" aria-hidden />
+              <span className={i === 0 ? "inline" : "hidden md:inline"}>{phone}</span>
+            </a>
+          ))}
+        </div>
+
+        <nav className="hidden items-center gap-1 xl:flex">
           <button
             onClick={() => setCats((v) => !v)}
             onMouseEnter={() => setCats(true)}
@@ -99,7 +113,7 @@ export function Header({ lang }: { lang: Lang }) {
 
         <form
           onSubmit={submitSearch}
-          className="hidden min-w-0 flex-1 max-w-xs items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 transition-colors focus-within:border-accent focus-within:ring-2 focus-within:ring-ring/25 xl:flex"
+          className="hidden min-w-0 flex-1 max-w-xs items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 transition-colors focus-within:border-accent focus-within:ring-2 focus-within:ring-ring/25 2xl:flex"
           role="search"
         >
           <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -118,7 +132,7 @@ export function Header({ lang }: { lang: Lang }) {
             to={href("/search", lang)}
             search={{ q: "" }}
             aria-label={t("search", lang)}
-            className="rounded-sm border border-border p-2 xl:hidden"
+            className="hidden rounded-sm border border-border p-2 sm:inline-flex 2xl:hidden"
           >
             <Search className="size-5" />
           </Link>
@@ -136,7 +150,7 @@ export function Header({ lang }: { lang: Lang }) {
             )}
           </Link>
           <button
-            className="rounded-sm border border-border p-2 lg:hidden"
+            className="rounded-sm border border-border p-2 xl:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="menu"
           >
@@ -146,7 +160,7 @@ export function Header({ lang }: { lang: Lang }) {
       </div>
 
       {cats && (
-        <div className="hidden border-t border-border bg-card lg:block">
+        <div className="hidden border-t border-border bg-card xl:block">
           <div className="container-page grid max-h-[70vh] grid-cols-3 gap-x-8 gap-y-1 overflow-y-auto overscroll-contain py-5">
             {CATEGORIES.map((c) => (
               <Link
@@ -163,7 +177,7 @@ export function Header({ lang }: { lang: Lang }) {
       )}
 
       {open && (
-        <div className="border-t border-border bg-card lg:hidden">
+        <div className="border-t border-border bg-card xl:hidden">
           <div className="container-page flex flex-col py-3">
             {nav.map((n) => (
               <Link

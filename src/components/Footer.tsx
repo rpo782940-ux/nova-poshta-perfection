@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { t } from "@/lib/i18n";
-import { CATEGORIES, CONTACTS, href, pageNav, type Lang } from "@/lib/site";
+import { CATEGORIES, CONTACTS, href, pageNav, telHref, type Lang } from "@/lib/site";
 
 export function Footer({ lang }: { lang: Lang }) {
   return (
@@ -55,7 +55,7 @@ export function Footer({ lang }: { lang: Lang }) {
             {CONTACTS.phones.map((p) => (
               <li key={p} className="flex items-center gap-2">
                 <Phone className="size-4 text-accent" aria-hidden />
-                <a href={`tel:${p.replace(/[^+\d]/g, "")}`} className="hover:text-accent">
+                <a href={telHref(p)} className="font-semibold hover:text-accent">
                   {p}
                 </a>
               </li>
