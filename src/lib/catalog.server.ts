@@ -38,6 +38,9 @@ export function publicClient() {
 
 type Row = Record<string, unknown>;
 
+/** Categories retired from the site but still present in the source data. */
+const HIDDEN_CATEGORIES = new Set(["forms_schelevogo_pola"]);
+
 const strList = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 
@@ -88,6 +91,7 @@ async function categoryMap() {
   const byId = new Map<string, string>();
   const bySlug = new Map<string, string>();
   for (const c of data ?? []) {
+    if (HIDDEN_CATEGORIES.has(c.slug)) continue;
     byId.set(c.id, c.slug);
     bySlug.set(c.slug, c.id);
   }
@@ -161,9 +165,9 @@ export async function loadHighlights(
       .order("sort_order", { ascending: true })
       .limit(8);
     if (error) throw new Error(error.message);
-    return (data ?? []).map((row) =>
-      toProduct(row as Row, lang, byId.get((row as Row)["category_id"] as string) ?? ""),
-    );
+    return (data ?? [])
+      .filter((row) => byId.has((row as Row)["category_id"] as string))
+      .map((row) => toProduct(row as Row, lang, byId.get((row as Row)["category_id"] as string)!));
   };
 
   const [fresh, specials] = await Promise.all([pick("is_new"), pick("is_special")]);
@@ -199,9 +203,9 @@ export async function loadSearch(query: string, lang: Lang): Promise<Product[]> 
     .limit(120);
   if (error) throw new Error(error.message);
 
-  return (data ?? []).map((row) =>
-    toProduct(row as Row, lang, byId.get((row as Row)["category_id"] as string) ?? ""),
-  );
+  return (data ?? [])
+    .filter((row) => byId.has((row as Row)["category_id"] as string))
+    .map((row) => toProduct(row as Row, lang, byId.get((row as Row)["category_id"] as string)!));
 }
 
 /** Single product page: the item itself plus siblings from the same category. */

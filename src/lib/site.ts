@@ -299,15 +299,6 @@ export const PAGES: PageDef[] = [
     "Набірні стовпи",
   ),
   mfCategory(
-    "forms_schelevogo_pola",
-    "Форма для щелевых полов",
-    "Форма для щілинної підлоги",
-    "Купить стеклопластиковую форму для щелевых полов в свинарники. Условия доставки по Украине, наличие и стоимость форм для бетонных полов.",
-    "Купити склопластикову форму для щілинної підлоги у свинарники. Умови доставки по Україні, наявність та вартість форм для бетонної підлоги.",
-    "Щелевые полы",
-    "Щілинна підлога",
-  ),
-  mfCategory(
     "dobavki_dlya_betona",
     "Пигменты, пластификатор и смазка для форм",
     "Пігменти, пластифікатор та мастило для форм",
@@ -400,7 +391,6 @@ const CATEGORY_ORDER = [
   "forms_peril_i_balyasin",
   "forms_stolov_i_skameek",
   "forms_decora",
-  "forms_schelevogo_pola",
   "dobavki_dlya_betona",
   "vakuumnaya_formovka",
   "vibrostoly",
@@ -433,10 +423,22 @@ export function href(path: string, lang: Lang) {
 }
 
 export const CONTACTS = {
-  phones: ["+38 (067) 630-27-27", "+38 (050) 630-27-27"],
+  phones: ["(050) 235 33 00", "(068) 235 33 00"],
   email: "technoforma@ukr.net",
   addressRu: "Украина, г. Днепр",
   addressUk: "Україна, м. Дніпро",
   hoursRu: "Пн–Пт: 9:00–18:00, Сб: 9:00–14:00",
   hoursUk: "Пн–Пт: 9:00–18:00, Сб: 9:00–14:00",
 };
+
+/** Ukrainian numbers are stored in local format — build a valid tel: link. */
+export function telHref(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  return `tel:+38${digits.startsWith("38") ? digits.slice(2) : digits}`;
+}
+
+/** Own, watermark-free category photography (public/categories/<slug>.jpg). */
+export function categoryCover(slug: string, fallback = "/brand/logo.png") {
+  return CATEGORY_ORDER.includes(slug) ? `/categories/${slug}.jpg` : fallback;
+}
+

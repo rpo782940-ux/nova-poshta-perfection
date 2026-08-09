@@ -5,9 +5,12 @@ import { ProductGrid } from "@/components/ProductGrid";
 import { CategoryCatalog } from "@/components/CategoryCatalog";
 import { highlightsQuery, navQuery } from "@/lib/catalog-queries";
 import { t } from "@/lib/i18n";
+import { CATEGORY_SEO } from "@/lib/category-seo";
 import {
   CATEGORIES,
   CONTACTS,
+  categoryCover,
+  telHref,
   PAGE_MAP,
   href,
   pageDesc,
@@ -61,24 +64,21 @@ function CategoryCard({
   headingLevel?: "h2" | "h3";
 }) {
   const Heading = headingLevel;
-  const cover = info?.cover ?? "/brand/logo.png";
+  const cover = categoryCover(page.slug, info?.cover ?? "/brand/logo.png");
   return (
     <Link
       to={href(`/${page.slug}.php`, lang)}
       className="group overflow-hidden rounded-xl border border-border bg-card shadow-plate transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-lift"
     >
       <div className="relative aspect-16/10 overflow-hidden bg-concrete">
-        <div
-          aria-hidden
-          className="absolute inset-0 scale-125 bg-cover bg-center opacity-45 blur-2xl"
-          style={{ backgroundImage: `url("${cover}")` }}
-        />
         <img
           src={cover}
           alt={pageNav(page, lang)}
           loading="lazy"
           decoding="async"
-          className="relative size-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.06]"
+          width={1024}
+          height={640}
+          className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
         />
       </div>
       <div className="flex items-center justify-between gap-3 p-4">
@@ -122,7 +122,7 @@ export function HomeView({ lang }: { lang: Lang }) {
                 {t("heroCta", lang)} <ArrowRight className="size-4" />
               </Link>
               <a
-                href={`tel:${CONTACTS.phones[0].replace(/[^+\d]/g, "")}`}
+                href={telHref(CONTACTS.phones[0])}
                 className="inline-flex items-center gap-2 rounded-lg border border-steel-foreground/25 px-5 py-3 text-sm font-semibold hover:bg-steel-foreground/10"
               >
                 {CONTACTS.phones[0]}
@@ -136,17 +136,14 @@ export function HomeView({ lang }: { lang: Lang }) {
                 to={href(`/${c.slug}.php`, lang)}
                 className="group relative aspect-square overflow-hidden rounded-xl border border-steel-foreground/15 bg-steel-foreground/5"
               >
-                <div
-                  aria-hidden
-                  className="absolute inset-0 scale-125 bg-cover bg-center opacity-35 blur-2xl"
-                  style={{ backgroundImage: `url("${map.get(c.slug)?.cover ?? ""}")` }}
-                />
                 <img
-                  src={map.get(c.slug)?.cover ?? "/brand/logo.png"}
+                  src={categoryCover(c.slug, map.get(c.slug)?.cover ?? "/brand/logo.png")}
                   alt={pageNav(c, lang)}
                   loading="lazy"
                   decoding="async"
-                  className="relative size-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.06]"
+                  width={1024}
+                  height={640}
+                  className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                 />
                 <span className="absolute inset-x-0 bottom-0 bg-steel/85 px-3 py-2 text-xs font-semibold">
                   {pageNav(c, lang)}
@@ -227,12 +224,23 @@ export function CatalogView({ lang }: { lang: Lang }) {
 
 export function CategoryView({ slug, lang }: { slug: string; lang: Lang }) {
   const page = PAGE_MAP[slug];
+  const seo = CATEGORY_SEO[slug];
   return (
     <>
       <PageHeader h1={pageH1(page, lang)} sub={pageDesc(page, lang)} />
       <div className="container-page py-8">
         <Breadcrumbs lang={lang} current={pageNav(page, lang)} />
         <CategoryCatalog slug={slug} lang={lang} />
+        {seo && (
+          <section className="mt-12 rounded-xl border border-border bg-card p-6 shadow-plate sm:p-8">
+            <h2 className="font-display text-xl font-bold">{seo.h2}</h2>
+            <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
+              {seo.paragraphs.map((text) => (
+                <p key={text}>{text}</p>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </>
   );
@@ -247,9 +255,9 @@ export function DeliveryView({ lang }: { lang: Lang }) {
           {
             h: "Оплата",
             items: [
-              "Передоплата 50% на рахунок ФОП або на картку — решта перед відправленням.",
-              "Повна оплата за домовленістю для постійних клієнтів.",
-              "Готівка при самовивозі зі складу.",
+              "Передоплата на рахунок ФОП, решта — при отриманні.",
+              "Рахунок надсилаємо після підтвердження замовлення менеджером.",
+              "Працюємо з ФОП і юридичними особами, надаємо документи.",
             ],
           },
           {
@@ -260,21 +268,14 @@ export function DeliveryView({ lang }: { lang: Lang }) {
               "Самовивіз зі складу, Пн–Пт 9:00–18:00.",
             ],
           },
-          {
-            h: "Упаковка",
-            items: [
-              "Форми пакуються в стрейч і картон, стоси фіксуються.",
-              "Крихкі склопластикові форми — окремий жорсткий каркас.",
-            ],
-          },
         ]
       : [
           {
             h: "Оплата",
             items: [
-              "Предоплата 50% на счёт ФЛП или на карту — остаток перед отправкой.",
-              "Полная оплата по договорённости для постоянных клиентов.",
-              "Наличные при самовывозе со склада.",
+              "Предоплата на счёт ФЛП, остальное — при получении.",
+              "Счёт присылаем после подтверждения заказа менеджером.",
+              "Работаем с ФЛП и юридическими лицами, предоставляем документы.",
             ],
           },
           {
@@ -285,13 +286,6 @@ export function DeliveryView({ lang }: { lang: Lang }) {
               "Самовывоз со склада, Пн–Пт 9:00–18:00.",
             ],
           },
-          {
-            h: "Упаковка",
-            items: [
-              "Формы пакуются в стрейч и картон, стопки фиксируются.",
-              "Хрупкие стеклопластиковые формы — отдельный жёсткий каркас.",
-            ],
-          },
         ];
 
   return (
@@ -299,7 +293,7 @@ export function DeliveryView({ lang }: { lang: Lang }) {
       <PageHeader h1={pageH1(page, lang)} />
       <div className="container-page py-10">
         <Breadcrumbs lang={lang} current={pageH1(page, lang)} />
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           {blocks.map((b) => (
             <section key={b.h} className="rounded-xl border border-border bg-card p-6 shadow-plate">
               <h2 className="font-display text-lg font-semibold">{b.h}</h2>
@@ -374,7 +368,7 @@ export function ContactsView({ lang }: { lang: Lang }) {
             <ul className="mt-4 space-y-3 text-sm">
               {CONTACTS.phones.map((p) => (
                 <li key={p}>
-                  <a href={`tel:${p.replace(/[^+\d]/g, "")}`} className="font-medium hover:text-accent">
+                  <a href={telHref(p)} className="font-medium hover:text-accent">
                     {p}
                   </a>
                 </li>
