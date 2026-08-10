@@ -243,7 +243,21 @@ export async function listWarehouses(settlementRef: string): Promise<NpPoint[]> 
     seen.add(ref);
     const kind = kindOf(row);
     const { name, address } = pointLabel(row, kind);
-    out.push({ ref, name, number: str(row, "Number"), address, kind });
+    out.push({
+      ref,
+      name,
+      number: str(row, "Number"),
+      address,
+      kind,
+      description: str(row, "Description"),
+      typeName: str(row, "CategoryOfWarehouse") === "Postomat" ? "Поштомат" : str(row, "TypeOfWarehouse") ? "" : "",
+      phone: str(row, "Phone"),
+      placeMaxWeight: Number(row["PlaceMaxWeightAllowed"] ?? 0) || 0,
+      totalMaxWeight: Number(row["TotalMaxWeightAllowed"] ?? 0) || 0,
+      schedule: scheduleOf(row),
+      features: featuresOf(row),
+    });
+
   }
 
   const rank: Record<NpPointKind, number> = { branch: 0, postomat: 1, dropoff: 2 };
