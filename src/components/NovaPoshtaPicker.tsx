@@ -264,23 +264,83 @@ export function NovaPoshtaPicker({
 
       {/* Step 2 — delivery point */}
       {city && point && !pointsOpen && (
-        <button
-          type="button"
-          onClick={() => setPointsOpen(true)}
-          className="flex w-full items-start gap-2.5 rounded-lg border border-accent bg-background px-3 py-3 text-left"
-        >
-          <Check className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold">{point.name}</span>
-            <span className="block break-words text-xs text-muted-foreground">
-              {point.address}
+        <div className="rounded-lg border border-accent bg-background px-3 py-3">
+          <button
+            type="button"
+            onClick={() => setPointsOpen(true)}
+            className="flex w-full items-start gap-2.5 text-left"
+          >
+            <Check className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">{point.name}</span>
+              <span className="block break-words text-xs text-muted-foreground">
+                {point.description || point.address}
+              </span>
             </span>
-          </span>
-          <span className="shrink-0 text-xs font-medium text-accent underline">
-            {t("npChange", lang)}
-          </span>
-        </button>
+            <span className="shrink-0 text-xs font-medium text-accent underline">
+              {t("npChange", lang)}
+            </span>
+          </button>
+
+          {/* Everything the Nova Poshta directory actually returns for this point. */}
+          <dl className="mt-3 space-y-1.5 border-t border-border pt-3 text-xs">
+            {point.number && (
+              <div className="flex gap-2">
+                <dt className="w-28 shrink-0 text-muted-foreground">Номер</dt>
+                <dd className="min-w-0 flex-1 break-words">№{point.number}</dd>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <dt className="w-28 shrink-0 text-muted-foreground">Адреса</dt>
+              <dd className="min-w-0 flex-1 break-words">{point.address}</dd>
+            </div>
+            {point.phone && (
+              <div className="flex gap-2">
+                <dt className="w-28 shrink-0 text-muted-foreground">Телефон</dt>
+                <dd className="min-w-0 flex-1 break-words">
+                  <a href={`tel:${point.phone}`} className="underline">
+                    {point.phone}
+                  </a>
+                </dd>
+              </div>
+            )}
+            {point.placeMaxWeight > 0 && (
+              <div className="flex gap-2">
+                <dt className="w-28 shrink-0 text-muted-foreground">Макс. вага місця</dt>
+                <dd className="min-w-0 flex-1">{point.placeMaxWeight} кг</dd>
+              </div>
+            )}
+            {point.totalMaxWeight > 0 && (
+              <div className="flex gap-2">
+                <dt className="w-28 shrink-0 text-muted-foreground">Макс. вага</dt>
+                <dd className="min-w-0 flex-1">{point.totalMaxWeight} кг</dd>
+              </div>
+            )}
+            {point.schedule.length > 0 && (
+              <div className="flex gap-2">
+                <dt className="w-28 shrink-0 text-muted-foreground">Графік</dt>
+                <dd className="min-w-0 flex-1">
+                  <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5 sm:grid-cols-3">
+                    {point.schedule.map((s) => (
+                      <li key={s.day} className="flex justify-between gap-2">
+                        <span className="text-muted-foreground">{s.day}</span>
+                        <span>{s.hours}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            )}
+            {point.features.length > 0 && (
+              <div className="flex gap-2">
+                <dt className="w-28 shrink-0 text-muted-foreground">Сервіси</dt>
+                <dd className="min-w-0 flex-1 break-words">{point.features.join(" · ")}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
       )}
+
 
       {city && (!point || pointsOpen) && (
         <div className="space-y-2">

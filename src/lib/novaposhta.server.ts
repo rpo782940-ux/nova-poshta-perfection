@@ -160,6 +160,50 @@ function pointLabel(row: NpItem, kind: NpPointKind): { name: string; address: st
   return { name: number ? `${prefix} №${number}` : prefix, address };
 }
 
+const DAYS: [string, string][] = [
+  ["Monday", "Пн"],
+  ["Tuesday", "Вт"],
+  ["Wednesday", "Ср"],
+  ["Thursday", "Чт"],
+  ["Friday", "Пт"],
+  ["Saturday", "Сб"],
+  ["Sunday", "Нд"],
+];
+
+/** Real API schedule; entries the API omits are simply not shown. */
+function scheduleOf(row: NpItem): { day: string; hours: string }[] {
+  const raw = row["Schedule"];
+  if (!raw || typeof raw !== "object") return [];
+  const src = raw as Record<string, unknown>;
+  const out: { day: string; hours: string }[] = [];
+  for (const [key, label] of DAYS) {
+    const value = typeof src[key] === "string" ? (src[key] as string).trim() : "";
+    if (value) out.push({ day: label, hours: value });
+  }
+  return out;
+}
+
+/** Only flags the directory actually reports as enabled. */
+function featuresOf(row: NpItem): string[] {
+  const on = (field: string) => {
+    const v = row[field];
+    return v === true || v === "1" || v === 1;
+  };
+  const flags: [string, string][] = [
+    ["POSTerminal", "Оплата картою (POS-термінал)"],
+    ["PaymentAccess", "Приймання платежів"],
+    ["PostFinance", "Поштові фінанси"],
+    ["BicycleParking", "Велопарковка"],
+    ["InternationalShipping", "Міжнародні відправлення"],
+    ["OnlyReceivingParcel", "Тільки видача відправлень"],
+  ];
+  const out = flags.filter(([f]) => on(f)).map(([, label]) => label);
+  const workplaces = Number(row["SelfServiceWorkplacesCount"] ?? 0) || 0;
+  if (workplaces > 0) out.push(`Самообслуговування: ${workplaces} місць`);
+  return out;
+}
+
+
 /** Every Nova Poshta point of a settlement: branches, postomats and drop-off points. */
 export async function listWarehouses(settlementRef: string): Promise<NpPoint[]> {
   const key = `wh:${settlementRef}`;
@@ -199,7 +243,21 @@ export async function listWarehouses(settlementRef: string): Promise<NpPoint[]> 
     seen.add(ref);
     const kind = kindOf(row);
     const { name, address } = pointLabel(row, kind);
-    out.push({ ref, name, number: str(row, "Number"), address, kind });
+    out.push({
+      ref,
+      name,
+      number: str(row, "Number"),
+      address,
+      kind,
+      description: str(row, "Description"),
+      typeName: str(row, "CategoryOfWarehouse"),
+      phone: str(row, "Phone"),
+      placeMaxWeight: Number(row["PlaceMaxWeightAllowed"] ?? 0) || 0,
+      totalMaxWeight: Number(row["TotalMaxWeightAllowed"] ?? 0) || 0,
+      schedule: scheduleOf(row),
+      features: featuresOf(row),
+    });
+
   }
 
   const rank: Record<NpPointKind, number> = { branch: 0, postomat: 1, dropoff: 2 };

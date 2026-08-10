@@ -78,7 +78,9 @@ function CategoryCard({
           decoding="async"
           width={1024}
           height={640}
-          className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+          className={`size-full transition-transform duration-500 group-hover:scale-[1.06] ${
+            page.slug === "vakuumnaya_formovka" ? "object-contain p-1" : "object-cover"
+          }`}
         />
       </div>
       <div className="flex items-center justify-between gap-3 p-4">
@@ -143,7 +145,10 @@ export function HomeView({ lang }: { lang: Lang }) {
                   decoding="async"
                   width={1024}
                   height={640}
-                  className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+                  className={`size-full transition-transform duration-500 group-hover:scale-[1.06] ${
+                    c.slug === "vakuumnaya_formovka" ? "object-contain p-1" : "object-cover"
+                  }`}
+
                 />
                 <span className="absolute inset-x-0 bottom-0 bg-steel/85 px-3 py-2 text-xs font-semibold">
                   {pageNav(c, lang)}
