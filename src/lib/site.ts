@@ -437,8 +437,14 @@ export function telHref(phone: string) {
   return `tel:+38${digits.startsWith("38") ? digits.slice(2) : digits}`;
 }
 
-/** Own, watermark-free category photography (public/categories/<slug>.jpg). */
+import vacuumForming from "@/assets/vacuum-forming.png.asset.json";
+
+/**
+ * Category cover: original catalogue photography is used everywhere;
+ * only "Вакуумне формування" gets the dedicated, watermark-free photo.
+ */
 export function categoryCover(slug: string, fallback = "/brand/logo.png") {
-  return CATEGORY_ORDER.includes(slug) ? `/categories/${slug}.jpg` : fallback;
+  return slug === "vakuumnaya_formovka" ? vacuumForming.url : fallback;
 }
+
 
