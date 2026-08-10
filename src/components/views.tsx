@@ -146,8 +146,9 @@ export function HomeView({ lang }: { lang: Lang }) {
                   width={1024}
                   height={640}
                   className={`size-full transition-transform duration-500 group-hover:scale-[1.06] ${
-            page.slug === "vakuumnaya_formovka" ? "object-contain p-1" : "object-cover"
-          }`}
+                    c.slug === "vakuumnaya_formovka" ? "object-contain p-1" : "object-cover"
+                  }`}
+
                 />
                 <span className="absolute inset-x-0 bottom-0 bg-steel/85 px-3 py-2 text-xs font-semibold">
                   {pageNav(c, lang)}
