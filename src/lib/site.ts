@@ -1,3 +1,5 @@
+import vacuumForming from "@/assets/vacuum-forming.png.asset.json";
+
 export type Lang = "ru" | "uk";
 
 export type Variant = { label: string; price: number };
@@ -436,8 +438,6 @@ export function telHref(phone: string) {
   const digits = phone.replace(/\D/g, "");
   return `tel:+38${digits.startsWith("38") ? digits.slice(2) : digits}`;
 }
-
-import vacuumForming from "@/assets/vacuum-forming.png.asset.json";
 
 /**
  * Category cover: original catalogue photography is used everywhere;
