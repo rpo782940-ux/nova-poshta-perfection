@@ -250,7 +250,7 @@ export async function listWarehouses(settlementRef: string): Promise<NpPoint[]> 
       address,
       kind,
       description: str(row, "Description"),
-      typeName: str(row, "CategoryOfWarehouse") === "Postomat" ? "Поштомат" : str(row, "TypeOfWarehouse") ? "" : "",
+      typeName: str(row, "CategoryOfWarehouse"),
       phone: str(row, "Phone"),
       placeMaxWeight: Number(row["PlaceMaxWeightAllowed"] ?? 0) || 0,
       totalMaxWeight: Number(row["TotalMaxWeightAllowed"] ?? 0) || 0,
