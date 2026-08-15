@@ -126,6 +126,7 @@ export type Database = {
           order_id: string
           product_id: string | null
           product_name: string
+          product_sku: string | null
           quantity: number
           unit_price: number
           variant_label: string | null
@@ -136,6 +137,7 @@ export type Database = {
           order_id: string
           product_id?: string | null
           product_name: string
+          product_sku?: string | null
           quantity?: number
           unit_price?: number
           variant_label?: string | null
@@ -146,6 +148,7 @@ export type Database = {
           order_id?: string
           product_id?: string | null
           product_name?: string
+          product_sku?: string | null
           quantity?: number
           unit_price?: number
           variant_label?: string | null
@@ -177,12 +180,17 @@ export type Database = {
           email: string | null
           id: string
           lang: string
+          np_city: string | null
+          np_warehouse: string | null
+          np_warehouse_address: string | null
+          np_warehouse_data: Json | null
           order_no: number
           payment: string | null
           phone: string
           status: string
           total: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           city?: string | null
@@ -193,12 +201,17 @@ export type Database = {
           email?: string | null
           id?: string
           lang?: string
+          np_city?: string | null
+          np_warehouse?: string | null
+          np_warehouse_address?: string | null
+          np_warehouse_data?: Json | null
           order_no?: never
           payment?: string | null
           phone: string
           status?: string
           total?: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           city?: string | null
@@ -209,12 +222,53 @@ export type Database = {
           email?: string | null
           id?: string
           lang?: string
+          np_city?: string | null
+          np_warehouse?: string | null
+          np_warehouse_address?: string | null
+          np_warehouse_data?: Json | null
           order_no?: never
           payment?: string | null
           phone?: string
           status?: string
           total?: number
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      phone_verifications: {
+        Row: {
+          attempts: number
+          code_hash: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          phone: string
+          purpose: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          phone: string
+          purpose?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone?: string
+          purpose?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -348,6 +402,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          phone_verified: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string
+          id: string
+          last_name?: string
+          phone: string
+          phone_verified?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          phone_verified?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       sync_runs: {
         Row: {
