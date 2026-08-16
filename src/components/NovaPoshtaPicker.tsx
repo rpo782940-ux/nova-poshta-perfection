@@ -6,7 +6,12 @@ import type { NpCity, NpPoint } from "@/lib/novaposhta-types";
 import { t } from "@/lib/i18n";
 import type { Lang } from "@/lib/site";
 
-export type NpSelection = { city: string; warehouse: string };
+export type NpSelection = {
+  city: string;
+  warehouse: string;
+  warehouseAddress: string;
+  point: NpPoint | null;
+};
 
 const POPULAR = ["Київ", "Харків", "Одеса", "Дніпро", "Львів", "Запоріжжя"];
 
@@ -97,7 +102,12 @@ export function NovaPoshtaPicker({
       setPointQuery("");
       setPoints([]);
       setPointsOpen(true);
-      onChange({ city: `${next.name}, ${next.hint}`.replace(/,\s*$/, ""), warehouse: "" });
+      onChange({
+        city: `${next.name}, ${next.hint}`.replace(/,\s*$/, ""),
+        warehouse: "",
+        warehouseAddress: "",
+        point: null,
+      });
 
       const req = ++pointReq.current;
       setPointsLoading(true);
@@ -130,7 +140,7 @@ export function NovaPoshtaPicker({
     setPointQuery("");
     setPointsOpen(false);
     setFailed(false);
-    onChange({ city: "", warehouse: "" });
+    onChange({ city: "", warehouse: "", warehouseAddress: "", point: null });
   };
 
   // Points are fully loaded for the settlement, so filtering is instant and local.
@@ -189,7 +199,7 @@ export function NovaPoshtaPicker({
               setPoints([]);
               setPoint(null);
               setPointsOpen(false);
-              onChange({ city: "", warehouse: "" });
+              onChange({ city: "", warehouse: "", warehouseAddress: "", point: null });
             }
           }}
           className={field}
@@ -397,7 +407,9 @@ export function NovaPoshtaPicker({
                           setPointQuery("");
                           onChange({
                             city: `${city.name}, ${city.hint}`.replace(/,\s*$/, ""),
-                            warehouse: `${p.name}: ${p.address}`,
+                            warehouse: p.name,
+                            warehouseAddress: p.address,
+                            point: p,
                           });
                         }}
                         className={`flex w-full items-start gap-2.5 px-3 py-3 text-left transition-colors ${
